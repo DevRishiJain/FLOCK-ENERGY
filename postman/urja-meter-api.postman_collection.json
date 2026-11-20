@@ -1,0 +1,603 @@
+{
+  "info": {
+    "name": "Urja Meter API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Import, then adjust variables (baseUrl, readerKey, adminKey)."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "readerKey",
+      "value": "dev-reader-key"
+    },
+    {
+      "key": "adminKey",
+      "value": "dev-admin-key"
+    }
+  ],
+  "item": [
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "Health (no auth)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Liveness + last successful sync time."
+          }
+        },
+        {
+          "name": "Sync status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{readerKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/sync/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "sync",
+                "status"
+              ]
+            },
+            "description": "Last 5 sync runs."
+          }
+        },
+        {
+          "name": "Trigger sync (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{adminKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/sync?readings=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "sync"
+              ],
+              "query": [
+                {
+                  "key": "readings",
+                  "value": "true",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Starts a background sync. 202 Accepted. Reader key gets 403."
+          }
+        },
+        {
+          "name": "Data quality report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{readerKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/data-quality?limit=50",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "data-quality"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Inconsistencies found in portal data; add kind=multiple_parents to filter."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Meters",
+      "item": [
+        {
+          "name": "List meters",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{readerKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/meters?limit=10&offset=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "meters"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "disabled": false
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Paginated."
+          }
+        },
+        {
+          "name": "Filter meters",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{readerKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/meters?install_status=Faulty&make=Genus&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "meters"
+              ],
+              "query": [
+                {
+                  "key": "install_status",
+                  "value": "Faulty",
+                  "disabled": false
+                },
+                {
+                  "key": "make",
+                  "value": "Genus",
+                  "disabled": false
+                },
+                {
+                  "key": "phase_type",
+                  "value": "three",
+                  "disabled": true
+                },
+                {
+                  "key": "build",
+                  "value": "v2",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "J1000",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Toggle params on/off."
+          }
+        },
+        {
+          "name": "Meters under hierarchy node",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{readerKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/meters?node=circle:C-01&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "meters"
+              ],
+              "query": [
+                {
+                  "key": "node",
+                  "value": "circle:C-01",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "All meters beneath any node id (zone:Z-01, circle:C-01, feeder:F-001, dt:DT-001 ...)."
+          }
+        },
+        {
+          "name": "Meters near a point",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{readerKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/meters/nearby?lat=26.94&lon=75.83&radius_km=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "meters",
+                "nearby"
+              ],
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "26.94",
+                  "disabled": false
+                },
+                {
+                  "key": "lon",
+                  "value": "75.83",
+                  "disabled": false
+                },
+                {
+                  "key": "radius_km",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Sorted by distance_km."
+          }
+        },
+        {
+          "name": "Meter detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{readerKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/meters/J100000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "meters",
+                "J100000"
+              ]
+            },
+            "description": "Includes full zone->dt hierarchy path."
+          }
+        },
+        {
+          "name": "Meter readings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{readerKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/meters/J100000/readings?from=2026-06-25T00:00:00Z&limit=10&offset=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "meters",
+                "J100000",
+                "readings"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-06-25T00:00:00Z",
+                  "disabled": false
+                },
+                {
+                  "key": "to",
+                  "value": "2026-06-26T00:00:00Z",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "disabled": false
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "UTC ISO-8601. J100000-J100039 have 337 half-hourly points, others 8 daily."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Hierarchy",
+      "item": [
+        {
+          "name": "Network tree",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{readerKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/hierarchy?depth=3",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "hierarchy"
+              ],
+              "query": [
+                {
+                  "key": "depth",
+                  "value": "3",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "depth 1=zones .. 7=down to DTs, with rolled-up meter counts."
+          }
+        },
+        {
+          "name": "Single node",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{readerKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/hierarchy/circle/C-01",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "hierarchy",
+                "circle",
+                "C-01"
+              ]
+            },
+            "description": "Ancestors, children, meter count. Levels: zone,circle,division,subdivision,substation,feeder,dt."
+          }
+        },
+        {
+          "name": "Transformers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{readerKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/transformers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "transformers"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth & error cases",
+      "item": [
+        {
+          "name": "No API key -> 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/meters",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "meters"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401',()=>pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reader on admin route -> 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{readerKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/sync",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "sync"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('403',()=>pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unknown meter -> 404",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{readerKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/meters/NOPE",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "meters",
+                "NOPE"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('404',()=>pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Bad param -> 422",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{readerKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/meters?limit=9999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "meters"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "9999",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422',()=>pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
