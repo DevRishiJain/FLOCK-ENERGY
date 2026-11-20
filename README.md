@@ -47,6 +47,24 @@ curl -X POST -H 'X-API-Key: dev-admin-key' localhost:8000/v1/sync
 ```
 Errors are always `{"error":{"code","message"}}`. Lists are `{items,total,limit,offset}`.
 
+## Beyond the core ask (the optional extensions I shipped)
+The brief offered optional extensions; I picked the highest-impact ones rather than breadth.
+
+- **Local index / query layer** — `GET /v1/meters/nearby?lat&lon&radius_km` answers a question the portal can't
+  (meters within a radius, sorted by distance): bounding box on indexed lat/lng + haversine. Filters the portal
+  also lacks: `make`, `install_status`, `phase_type`, `install_type`, `build`, `dt_code`, subtree (`node=`), free-text `q`.
+- **Modern web client** — `static/index.html` served at `/`: a Leaflet map of all 403 meters coloured by install
+  status, click any meter for its full hierarchy path and a consumption chart (derived by diffing cumulative
+  kWh registers), plus the data-quality summary. One file, no build step.
+- **Network hierarchy** — `GET /v1/hierarchy` (recursive CTE tree with rolled-up meter counts, `depth` control)
+  and `GET /v1/hierarchy/{level}/{code}` (ancestors + children). The portal's hierarchy is internally
+  inconsistent, so the tree is rebuilt by majority vote; `GET /v1/data-quality` exposes every disagreement.
+- **Full dataset via bulk path** — the sync uses the HMAC-signed `/portal/export` (1 request) instead of
+  ~420 crawled search/geo calls; see [PROTOCOL.md](PROTOCOL.md).
+- **Freshness / caching** — every `/v1` GET returns an `ETag` bound to the last successful sync; clients
+  revalidate (`If-None-Match`) and get `304` until new data lands.
+- **Robustness** — see trade-offs below (re-login, 5xx/429 backoff, self-throttle, per-meter failure isolation).
+
 ## Assumptions
 - Portal timestamps (`dd/mm/yyyy HH:MM`, no zone) are **IST (UTC+05:30)**: Jaipur utility. API returns UTC ISO-8601.
 - `kwh`/`kvah` are cumulative register values, so they're exposed as-is (the UI diffs them).
