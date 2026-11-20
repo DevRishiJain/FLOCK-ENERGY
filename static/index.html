@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Urja Meter Explorer</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+body{margin:0;font:14px system-ui;display:grid;grid-template-columns:1fr 380px;height:100vh;color:#1e293b}
+#map{height:100vh}aside{padding:12px;overflow:auto;background:#f8fafc;border-left:1px solid #e2e8f0}
+h1{font-size:16px;margin:0 0 8px}.k{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.k span{padding:2px 8px;border-radius:99px;color:#fff;font-size:12px;cursor:pointer}
+canvas{width:100%;height:160px;background:#fff;border:1px solid #e2e8f0;border-radius:6px}
+table{width:100%;border-collapse:collapse}td{padding:2px 4px;border-bottom:1px solid #e2e8f0}
+input,select{width:100%;padding:6px;margin:4px 0;box-sizing:border-box}small{color:#64748b}
+</style></head><body>
+<div id="map"></div>
+<aside>
+<h1>Urja Meter Explorer</h1>
+<input id="key" placeholder="API key (X-API-Key)" type="password">
+<div class="k" id="legend"></div>
+<small id="count"></small>
+<input id="q" placeholder="Filter by meter id / serial">
+<div id="detail"><small>Click a meter on the map.</small></div>
+<h1 style="margin-top:16px">Data quality</h1><div id="dq"></div>
+</aside>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const COLORS={Installed:'#16a34a',Faulty:'#dc2626',Decommissioned:'#64748b'};
+const map=L.map('map').setView([26.91,75.79],11);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
+const layer=L.layerGroup().addTo(map);let meters=[],hidden=new Set();
+const key=document.getElementById('key');key.value=localStorage.k||'';
+const api=async p=>{const r=await fetch(p,{headers:{'X-API-Key':key.value}});if(!r.ok)throw new Error((await r.json()).error.message);return r.json()};
+async function load(){localStorage.k=key.value;try{
+ meters=(await api('/v1/meters?limit=500')).items;
+ document.getElementById('legend').innerHTML=Object.entries(COLORS).map(([s,c])=>`<span style="background:${c}" data-s="${s}">${s} (${meters.filter(m=>m.install_status==s).length})</span>`).join('');
+ document.querySelectorAll('#legend span').forEach(e=>e.onclick=()=>{hidden.has(e.dataset.s)?hidden.delete(e.dataset.s):hidden.add(e.dataset.s);e.style.opacity=hidden.has(e.dataset.s)?.35:1;draw()});
+ draw();dq()}catch(e){document.getElementById('count').textContent=e.message}}
+function draw(){layer.clearLayers();const q=document.getElementById('q').value.toLowerCase();let n=0;
+ meters.filter(m=>!hidden.has(m.install_status)&&(!q||m.meter_id.toLowerCase().includes(q)||m.serial_no.toLowerCase().includes(q))).forEach(m=>{n++;
+ L.circleMarker([m.location.lat,m.location.lng],{radius:6,color:COLORS[m.install_status],fillOpacity:.7}).on('click',()=>show(m.meter_id)).addTo(layer)});
+ document.getElementById('count').textContent=n+' meters shown'}
+document.getElementById('q').oninput=draw;key.onchange=load;
+async function show(id){const d=await api('/v1/meters/'+id),r=await api(`/v1/meters/${id}/readings?limit=5000`);
+ document.getElementById('detail').innerHTML=`<h1>${d.meter_id}</h1><table>${[['Serial',d.serial_no],['Make',d.make],['Phase',d.phase_type],['Status',d.install_status],['Type',d.install_type],['Build',d.build],['Path',d.hierarchy.map(h=>h.code).join(' › ')]].map(([a,b])=>`<tr><td><small>${a}</small></td><td>${b}</td></tr>`).join('')}</table>
+ <p><small>Consumption per reading interval (kWh) — ${r.total} readings</small></p><canvas id="c" width="360" height="160"></canvas>`;
+ const v=r.items.slice(1).map((x,i)=>x.kwh-r.items[i].kwh),c=document.getElementById('c').getContext('2d'),mx=Math.max(...v,0.001),w=360/Math.max(v.length,1);
+ c.fillStyle='#2563eb';v.forEach((y,i)=>c.fillRect(i*w,160-y/mx*150,Math.max(w-1,1),y/mx*150))}
+async function dq(){const d=await api('/v1/data-quality?limit=1');document.getElementById('dq').innerHTML='<table>'+d.summary.map(s=>`<tr><td>${s.kind}</td><td>${s.count}</td></tr>`).join('')+'</table>'}
+if(key.value)load();
+</script></body></html>
