@@ -28,7 +28,7 @@ class FakePortal:
     def __call__(self, req: httpx.Request) -> httpx.Response:
         p = req.url.path
         if p == "/login":
-            ok = b"password=urja-ops-2026" in req.content and req.headers.get("origin")
+            ok = b"password=test-pass" in req.content and req.headers.get("origin")
             if ok:
                 self.logins += 1
                 self.valid = True
@@ -58,7 +58,7 @@ class FakePortal:
 
 @pytest.fixture
 def settings(tmp_path):
-    return Settings(db_path=str(tmp_path / "t.db"), request_delay_s=0, admin_api_key="adm", reader_api_key="rdr", sync_interval_hours=0, rate_limit_per_min=1000)
+    return Settings(portal_password="test-pass",db_path=str(tmp_path / "t.db"), request_delay_s=0, admin_api_key="adm", reader_api_key="rdr", sync_interval_hours=0, rate_limit_per_min=1000)
 
 
 @pytest.fixture

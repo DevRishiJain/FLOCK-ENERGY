@@ -10,7 +10,7 @@ def _b(name: str, default: str) -> bool:
 class Settings:
     portal_url: str = field(default_factory=lambda: os.getenv("PORTAL_URL", "https://urja-ops.flockenergy.tech"))
     portal_email: str = field(default_factory=lambda: os.getenv("PORTAL_EMAIL", "operator@urja.local"))
-    portal_password: str = field(default_factory=lambda: os.getenv("PORTAL_PASSWORD", "urja-ops-2026"))
+    portal_password: str = field(default_factory=lambda: os.getenv("PORTAL_PASSWORD", ""))
     db_path: str = field(default_factory=lambda: os.getenv("DB_PATH", "urja.db"))
     admin_api_key: str = field(default_factory=lambda: os.getenv("ADMIN_API_KEY", "dev-admin-key"))
     reader_api_key: str = field(default_factory=lambda: os.getenv("READER_API_KEY", "dev-reader-key"))
