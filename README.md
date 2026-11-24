@@ -6,6 +6,7 @@ A background job mirrors the portal into SQLite; consumers talk only to this API
 - How the portal works (my investigation): **[PROTOCOL.md](PROTOCOL.md)**
 - OpenAPI 3 spec: **[openapi.json](openapi.json)** (also live at `/docs` and `/redoc` when running)
 - Reflection answers: **[REFLECTION.md](REFLECTION.md)**
+- Architecture diagrams (current + production): **[ARCHITECTURE.md](ARCHITECTURE.md)**
 
 ## What I built
 ```
